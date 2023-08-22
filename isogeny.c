@@ -6,10 +6,16 @@
 
 /*STATIC DECLARATIONS*/
 
+/*SECTION 1: SUPERSINGULAR ELLIPTIC CURVES*/
+
+/*SECTION 2: MODULAR POLYNOMIALS*/
+static GEN getmodpol(GEN l);
+
+
 /*MAIN BODY*/
 
 
-/*SECTION 1: BASIC METHODS*/
+/*SECTION 1: SUPERSINGULAR ELLIPTIC CURVES*/
 
 /*Returns a finite field element that is the j-value of a supersingular elliptic curve over F_p.*/
 GEN
@@ -28,17 +34,6 @@ getss(GEN p)
   GEN rts = FFX_roots(hpol, g);
   if (poldegree(hpol, 0) != lg(rts) - 1) pari_err(e_MISC, "Not enough roots, the Hilbert polynomial should split over F_p^2.");
   return gerepilecopy(av, gel(rts, 1));
-}
-
-/*CURRENTLY ONLY WORKS FOR l=2*/
-
-/*Returns the modular polynomial for the given l. The format is [v1, v2, ..., vn], which represents pol1*y^0+...+poln+y^n-1 and vi=[a1,...,am] means poli=a1x^0+...+amx^(m-1).*/
-GEN
-getmodpol(GEN l)
-{
-  pari_sp av = avma;
-  if (!gequal(l, gen_2)) pari_err(e_IMPL, "Not yet implemented.");
-  return gerepilecopy(av, mkvec4(mkvec4s(-157464000000000, 8748000000, -162000, 1), mkvec3s(8748000000, 40773375, 1488), mkvec3s(-162000, 1488, -1), mkvec(gen_1)));
 }
 
 /*Returns the number of supersingular elliptic curves over F_p.*/
@@ -162,6 +157,66 @@ ss_nbrs(GEN jval, GEN l, GEN pol)
 	}
   }
   return gerepilecopy(av, allrts);
+}
+
+
+/*SECTION 2: MODULAR POLYNOMIALS*/
+
+/*Returns the modular polynomial for the given l. The format is [v1, v2, ..., vn], which represents pol1*y^0+...+poln+y^n-1 and vi=[a1,...,am] means poli=a1x^0+...+amx^(m-1).*/
+static GEN
+getmodpol(GEN l)
+{
+  pari_sp av = avma;
+  if (!gequal(l, gen_2)) pari_err(e_IMPL, "Not yet implemented.");
+  return gerepilecopy(av, mkvec4(mkvec4s(-157464000000000, 8748000000, -162000, 1), mkvec3s(8748000000, 40773375, 1488), mkvec3s(-162000, 1488, -1), mkvec(gen_1)));
+}
+
+/*Assuming that there is a presaved file for the modular polynomial Phi_n(x, y), this returns said polynomial.*/
+GEN
+modpol(GEN n)
+{
+  pari_sp av = avma;
+  char *fname = stack_sprintf("./modpolys/%Pd.dat", n);
+  GEN rdat = gp_readvec_file(fname);/*Read the raw data.*/
+  long i, j, lrdat = lg(rdat);
+  GEN f = gen_0;
+  for (i = 1; i < lrdat; i++) {/*y^(i-1) term. This is not the best way of doing it but doesn't matter.*/
+	GEN v = gel(rdat, i);
+	long lv = lg(v);
+	GEN t = gen_0;
+	for (j = 1; j < lv; j++) t = gadd(t, gmul(gel(v, j), pol_xn(j - 1, 0)));
+	f = gadd(f, gmul(t, pol_xn(i - 1, 1)));
+  }
+  return gerepilecopy(av, f);
+}
+
+/*Takes in the raw data and makes a file amenable to use in getmodpol.*/
+void
+modpol_processraw(GEN n)
+{
+  pari_sp av = avma;
+  char *fname = stack_sprintf("./modpolys/%Pd_raw.dat", n);
+  GEN rdat = gp_readvec_file(fname);/*Read the raw data.*/
+  FILE *f = fopen(stack_sprintf("./modpolys/%Pd.dat", n), "w");
+  long i, lrdat = lg(rdat);
+  GEN pol = gen_0;/*Stores the modular polynomial.*/
+  for (i = 1; i < lrdat; i++) {
+	GEN pair = gmael(rdat, i, 1);
+	long d1 = itos(gel(pair, 1)), d2 = itos(gel(pair, 2));
+	GEN toadd = gmul(pol_xn(d1, 0), pol_xn(d2, 1));
+	if (d1 != d2) toadd = gadd(toadd, gmul(pol_xn(d1, 1), pol_xn(d2, 0)));/*Symmetrize it*/
+	pol = gadd(pol, gmul(toadd, gmael(rdat, i, 2)));
+  }
+  long deg = poldegree(pol, 0);
+  for (i = 0; i <= deg; i++) {
+	GEN term = polcoef(pol, i, 0);/*Term x^i.*/
+	long termdeg = poldegree(term, 1), j;
+	GEN v = cgetg(termdeg + 2, t_VEC);
+	for(j = 0; j <= termdeg; j++) gel(v, j + 1) = polcoef(term, j, 1);/*Make the vector*/
+	pari_fprintf(f, "%Ps\n", v);
+  }
+  fclose(f);
+  set_avma(av);
 }
 
 
