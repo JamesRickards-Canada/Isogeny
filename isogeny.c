@@ -19,7 +19,7 @@ static GEN getmodpol(GEN l);
 
 /*Returns a finite field element that is the j-value of a supersingular elliptic curve over F_p.*/
 GEN
-getss(GEN p)
+getssl(GEN p)
 {
   pari_sp av = avma;
   forprime_t T;
@@ -38,7 +38,7 @@ getss(GEN p)
 
 /*Returns the number of supersingular elliptic curves over F_p.*/
 long
-ss_count(GEN p)
+ssl_count(GEN p)
 {
   long r, pm1 = itos(p) - 1;
   long d = sdivss_rem(pm1, 12, &r);/*d=floor(p-1)/12*/
@@ -49,18 +49,18 @@ ss_count(GEN p)
 
 /*Returns the supersingular isogeny graph. The output is [v, G], where v is the vector of possible j-invariants (as finite field elements), and G is the vector of Vecsmall of indices of where the ith element of v has directed arrows towards.*/
 GEN
-ss_graph(GEN p, GEN l)
+ssl_graph(GEN p, GEN l)
 {
   pari_sp av = avma;
-  GEN jval = getss(p);
+  GEN jval = getssl(p);
   GEN pol = getmodpol(l);
-  long nss = ss_count(p), vind = 1, i, lp2 = itos(l) + 2;
-  GEN v = cgetg(nss + 1, t_VEC);/*Tracks the j-invariants*/
-  GEN G = cgetg(nss + 1, t_VEC);/*Tracks the indices that they go to*/
-  for (i = 1; i <= nss; i++) gel(G, i) = cgetg(lp2, t_VECSMALL);/*l+1-regular*/
+  long nssl = ssl_count(p), vind = 1, i, lp2 = itos(l) + 2;
+  GEN v = cgetg(nssl + 1, t_VEC);/*Tracks the j-invariants*/
+  GEN G = cgetg(nssl + 1, t_VEC);/*Tracks the indices that they go to*/
+  for (i = 1; i <= nssl; i++) gel(G, i) = cgetg(lp2, t_VECSMALL);/*l+1-regular*/
   gel(v, 1) = jval;
   hashtable locs;/*Tracks the found j-invariants and their location in v.*/
-  hash_init_GEN(&locs, nss, &FF_equal, 1);/*Initialize the hash.*/
+  hash_init_GEN(&locs, nssl, &FF_equal, 1);/*Initialize the hash.*/
   hash_insert(&locs, (void *)jval, (void *)1);/*First j-value has index 1.*/
   long maxdepth = 100;/*Maximal depth, to start.*/
   GEN swaps = const_vecsmall(maxdepth, 0);/*Tracks the sequence of swaps.*/
@@ -68,7 +68,7 @@ ss_graph(GEN p, GEN l)
   depthseqlocs[1] = 1;
   GEN depthseq = cgetg(maxdepth + 1, t_VEC);/*Tracks the sequence of j-values found.*/
   gel(depthseq, 1) = jval;
-  gel(depthseq, 2) = ss_nbrs(jval, l, pol);/*The starting neighbours.*/
+  gel(depthseq, 2) = ssl_nbrs(jval, l, pol);/*The starting neighbours.*/
   long ind = 2;/*Tracks the depth we are working on.*/
   while (ind > 1) {/*We are finding the neighbours of the next j-value.*/
     long cind = ++swaps[ind];/*Increment the swapping index. We insert this (if required) and update the previous term in G to go there. If we did insert this anew, we also compute its neighbours and move deeper; otherwise we already did this before.*/
@@ -98,21 +98,21 @@ ss_graph(GEN p, GEN l)
       depthseq = vec_lengthen(depthseq, newdepth);
       maxdepth = newdepth;
     }
-    gel(depthseq, ind) = ss_nbrs(curj, l, pol);
+    gel(depthseq, ind) = ssl_nbrs(curj, l, pol);
   }
   hash_destroy(&locs);/*Done with the hashtable*/
-  for (i = 1; i <= nss; i++) vecsmall_sort(gel(G, i));
+  for (i = 1; i <= nssl; i++) vecsmall_sort(gel(G, i));
   return gerepilecopy(av, mkvec2(v, G));
 }
 
-/*Returns the adjacency matrix for the supersingular isogeny graph. Can pass either p and l or the output of ss_graph.*/
+/*Returns the adjacency matrix for the supersingular isogeny graph. Can pass either p and l or the output of ssl_graph.*/
 GEN
-ss_graphadjmat(GEN p, GEN l)
+ssl_graphadjmat(GEN p, GEN l)
 {
   pari_sp av = avma;
   GEN gdat;
   if (!l) gdat = p;
-  else gdat = ss_graph(p, l);
+  else gdat = ssl_graph(p, l);
   GEN G = gel(gdat, 2);
   long lenG = lg(G) - 1, i, j;
   long lp2 = lg(gel(G, 1));
@@ -126,7 +126,7 @@ ss_graphadjmat(GEN p, GEN l)
 
 /*Returns the neighbours of the supersingular j-invariant j in the l-isogeny graph. pol should be the output of getmodpol, or can be passed as NULL to compute it.*/
 GEN
-ss_nbrs(GEN jval, GEN l, GEN pol)
+ssl_nbrs(GEN jval, GEN l, GEN pol)
 {
   pari_sp av = avma;
   GEN fone = FF_1(jval);/*1 as a t_FFELT*/
