@@ -7,6 +7,7 @@
 /*STATIC DECLARATIONS*/
 
 /*SECTION 1: SUPERSINGULAR ELLIPTIC CURVES*/
+static GEN ssl_graph_i(GEN p, GEN l);
 
 /*SECTION 2: MODULAR POLYNOMIALS*/
 static GEN getmodpol(GEN l);
@@ -52,6 +53,13 @@ GEN
 ssl_graph(GEN p, GEN l)
 {
   pari_sp av = avma;
+  return gerepilecopy(av, ssl_graph_i(p, l));
+}
+
+/*ssl_graph but no garbage collection.*/
+static GEN
+ssl_graph_i(GEN p, GEN l)
+{
   GEN jval = getssl(p);
   GEN pol = getmodpol(l);
   long nssl = ssl_count(p), vind = 1, i, lp2 = itos(l) + 2;
@@ -102,7 +110,54 @@ ssl_graph(GEN p, GEN l)
   }
   hash_destroy(&locs);/*Done with the hashtable*/
   for (i = 1; i <= nssl; i++) vecsmall_sort(gel(G, i));
-  return gerepilecopy(av, mkvec2(v, G));
+  return mkvec2(v, G);
+}
+
+/*Writes the adjacency matrix to a file readable as a csr_array in scipy.sparse. Can input p=ssl_graph(p, l) and l=NULL if desired. The file is stored in scipy_adj/p_l.dat*/
+void
+ssl_graph_scipy(GEN p, GEN l)
+{
+  pari_sp av = avma;
+  GEN G;
+  if (l) G = gel(ssl_graph_i(p, l), 2);
+  else G = gel(p, 2);
+  long nrows = lg(G) - 1;
+  long lp1 = lg(gel(G, 1)) - 1;
+  long maxnonzero = nrows * lp1 + 1, i, j;
+  GEN rows = vecsmalltrunc_init(maxnonzero);/*Converting to csr format.*/
+  GEN cols = vecsmalltrunc_init(maxnonzero);
+  GEN data = vecsmalltrunc_init(maxnonzero);
+  for (i = 1; i <= nrows; i++) {
+	GEN r = gel(G, i);
+	long ct = 1;
+	for (j = 2; j <= lp1; j++) {
+	  if (r[j] != r[j - 1]) {
+		vecsmalltrunc_append(rows, i);
+		vecsmalltrunc_append(cols, r[j - 1]);
+		vecsmalltrunc_append(data, ct);
+		ct = 1;
+	  }
+	  else ct++;
+	}
+	vecsmalltrunc_append(rows, i);
+	vecsmalltrunc_append(cols, r[lp1]);
+	vecsmalltrunc_append(data, ct);
+  }
+  if (!pari_is_dir("scipy_adj")) {/*Make the directory if it doesn't exist.*/
+    int s = system("mkdir -p scipy_adj");
+    if (s == -1) pari_err(e_MISC, "ERROR CREATING DIRECTORY scipy_adj");
+  }
+  char *fname = stack_sprintf("./scipy_adj/%Pd_%Pd.dat", p, l);
+  FILE *f = fopen(fname, "w");
+  long ndata = lg(rows) - 1;
+  for (i = 1; i < ndata; i++) pari_fprintf(f, "%ld ", data[i]);
+  pari_fprintf(f, "%ld\n", data[ndata]);
+  for (i = 1; i < ndata; i++) pari_fprintf(f, "%ld ", rows[i] - 1);/*Shift by 1 for python convention.*/
+  pari_fprintf(f, "%ld\n", rows[ndata]);
+  for (i = 1; i < ndata; i++) pari_fprintf(f, "%ld ", cols[i] - 1);/*Shift by 1 for python convention.*/
+  pari_fprintf(f, "%ld", cols[ndata]);
+  fclose(f);
+  set_avma(av);
 }
 
 /*Returns the adjacency matrix for the supersingular isogeny graph. Can pass either p and l or the output of ssl_graph.*/

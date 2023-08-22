@@ -7,9 +7,11 @@ isogeny_library=strprintf("./libisogeny-%d-%d.so", parigp_version[1], parigp_ver
 	install(ssl_count,"lG");
 	addhelp(ssl_count,"ssl_count(p): returns the number of supersingular elliptic curves over F_p.");
 	install(ssl_graph,"GG");
-	addhelp(ssl_graph,"ssl_graph(p, l): Returns the supersingular isogeny graph G(p, l). The output is [v, G], where v is the vector of possible j-invariants (as finite field elements), and G is the vector of Vecsmall of indices of where the ith element of v has directed arrows towards.");
+	addhelp(ssl_graph,"ssl_graph(p, l): returns the supersingular isogeny graph G(p, l). The output is [v, G], where v is the vector of possible j-invariants (as finite field elements), and G is the vector of Vecsmall of indices of where the ith element of v has directed arrows towards.");
+	install(ssl_graph_scipy,"vGDG");
+	addhelp(ssl_graph_scipy,"ssl_graph_scipy(p, {l}): writes the adjacency matrix of G(p, l) to scipy_adj/p_l.dat, in a format readable by csr_array in scipy.sparse. Can also pass in p=ssl_graph(p, l) only. The file format is three lines of space separated integers, with the first being the data, the second being the rows, and the third being the columns of the corresponding sparse matrix.");
 	install(ssl_graphadjmat,"GDG");
-	addhelp(ssl_graphadjmat,"ssl_graphadjmat(p, {l}): Returns the adjacency matrix of the supersingular isogeny graph G(p, l); can also pass in p=ssl_graph(p, l) only.");
+	addhelp(ssl_graphadjmat,"ssl_graphadjmat(p, {l}): returns the adjacency matrix of the supersingular isogeny graph G(p, l); can also pass in p=ssl_graph(p, l) only.");
 	install(ssl_nbrs,"GGDG");
 	addhelp(ssl_nbrs,"ssl_nbrs(jval, l, {pol}): returns the j-values of the neighbours of jval in the l-isogeny graph.");
 
