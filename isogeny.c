@@ -52,41 +52,6 @@ ss_count(GEN p)
   return d;
 }
 
-/*Returns the neighbours of the supersingular j-invariant j in the l-isogeny graph. pol should be the output of getmodpol, or can be passed as NULL to compute it.*/
-GEN
-ss_nbrs(GEN jval, GEN l, GEN pol)
-{
-  pari_sp av = avma;
-  GEN fone = FF_1(jval);/*1 as a t_FFELT*/
-  if (!pol) pol = getmodpol(l);
-  long sl = itos(l), i;
-  GEN f = cgetg(sl + 4, t_POL);/*Stores the polynomial.*/
-  for (i = 1; i <= sl + 2; i++) {
-	GEN curcoef = gel(pol, i);/*Polynomial for the current coefficient.*/
-	long j = lg(curcoef) - 1;
-	GEN c = FF_Z_mul(fone, gel(curcoef, j));/*Convert last element to being in the finite field.*/
-	j--;
-	for ( ;j > 0; j--) {
-	  c = FF_mul(c, jval);
-	  c = FF_Z_add(c, gel(curcoef, j));/*Update the evaulation.*/
-	}
-	gel(f, i + 1) = c;
-  }
-  setvarn(f, 0);/*Make sure it is in the variable x.*/
-  GEN fact = FFX_factor(f, jval);/*Factor it since we need the multiplicities.*/
-  GEN allrts = cgetg(sl + 2, t_VEC);
-  long nbfact = nbrows(fact), ind = 1;
-  for (i = 1; i <= nbfact; i++) {
-	GEN rt = FF_neg(polcoef(gcoeff(fact, i, 1), 0, 0));/*The root, we are assuming the polynomial factors (which it does).*/
-	long j, po = itos(gcoeff(fact, i, 2));
-	for (j = 1; j <= po; j++) {
-	  gel(allrts, ind) = rt;
-	  ind++;
-	}
-  }
-  return gerepilecopy(av, allrts);
-}
-
 /*Returns the supersingular isogeny graph. The output is [v, G], where v is the vector of possible j-invariants (as finite field elements), and G is the vector of Vecsmall of indices of where the ith element of v has directed arrows towards.*/
 GEN
 ss_graph(GEN p, GEN l)
@@ -141,8 +106,62 @@ ss_graph(GEN p, GEN l)
 	gel(depthseq, ind) = ss_nbrs(curj, l, pol);
   }
   hash_destroy(&locs);/*Done with the hashtable*/
+  for (i = 1; i <= nss; i++) vecsmall_sort(gel(G, i));
   return gerepilecopy(av, mkvec2(v, G));
 }
 
+/*Returns the adjacency matrix for the supersingular isogeny graph. Can pass either p and l or the output of ss_graph.*/
+GEN
+ss_graphadjmat(GEN p, GEN l)
+{
+  pari_sp av = avma;
+  GEN gdat;
+  if (!l) gdat = p;
+  else gdat = ss_graph(p, l);
+  GEN G = gel(gdat, 2);
+  long lenG = lg(G) - 1, i, j;
+  long lp2 = lg(gel(G, 1));
+  GEN M = zeromatcopy(lenG, lenG);
+  for (i = 1; i <= lenG; i++) {
+	GEN row = gel(G, i);
+	for (j = 1; j < lp2; j++) gcoeff(M, i, row[j]) = addis(gcoeff(M, i, row[j]), 1);
+  }
+  return gerepilecopy(av, M);
+}
+
+/*Returns the neighbours of the supersingular j-invariant j in the l-isogeny graph. pol should be the output of getmodpol, or can be passed as NULL to compute it.*/
+GEN
+ss_nbrs(GEN jval, GEN l, GEN pol)
+{
+  pari_sp av = avma;
+  GEN fone = FF_1(jval);/*1 as a t_FFELT*/
+  if (!pol) pol = getmodpol(l);
+  long sl = itos(l), i;
+  GEN f = cgetg(sl + 4, t_POL);/*Stores the polynomial.*/
+  for (i = 1; i <= sl + 2; i++) {
+	GEN curcoef = gel(pol, i);/*Polynomial for the current coefficient.*/
+	long j = lg(curcoef) - 1;
+	GEN c = FF_Z_mul(fone, gel(curcoef, j));/*Convert last element to being in the finite field.*/
+	j--;
+	for ( ;j > 0; j--) {
+	  c = FF_mul(c, jval);
+	  c = FF_Z_add(c, gel(curcoef, j));/*Update the evaulation.*/
+	}
+	gel(f, i + 1) = c;
+  }
+  setvarn(f, 0);/*Make sure it is in the variable x.*/
+  GEN fact = FFX_factor(f, jval);/*Factor it since we need the multiplicities.*/
+  GEN allrts = cgetg(sl + 2, t_VEC);
+  long nbfact = nbrows(fact), ind = 1;
+  for (i = 1; i <= nbfact; i++) {
+	GEN rt = FF_neg(polcoef(gcoeff(fact, i, 1), 0, 0));/*The root, we are assuming the polynomial factors (which it does).*/
+	long j, po = itos(gcoeff(fact, i, 2));
+	for (j = 1; j <= po; j++) {
+	  gel(allrts, ind) = rt;
+	  ind++;
+	}
+  }
+  return gerepilecopy(av, allrts);
+}
 
 
