@@ -15,6 +15,6 @@ To use in Sage or Jupyter, follow these steps:
 
 5. From Sage/Jupyter, call gp.read('isogeny.gp')
 
-6. g=gp.ss_graph(101, 3) makes a graph
+6. g=gp.ssl_graph(101, 3) makes a graph
 
-7. ?gp.ss_graph accesses the help for the graph
+7. ?gp.ssl_graph accesses the help for this method
