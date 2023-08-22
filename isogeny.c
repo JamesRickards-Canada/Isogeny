@@ -41,6 +41,17 @@ getmodpol(GEN l)
   return gerepilecopy(av, mkvec4(mkvec4s(-157464000000000, 8748000000, -162000, 1), mkvec3s(8748000000, 40773375, 1488), mkvec3s(-162000, 1488, -1), mkvec(gen_1)));
 }
 
+/*Returns the number of supersingular elliptic curves over F_p.*/
+long
+ss_count(GEN p)
+{
+  long r, pm1 = itos(p) - 1;
+  long d = sdivss_rem(pm1, 12, &r);/*d=floor(p-1)/12*/
+  if (r % 4 == 2) d++;/*p==3(4), add 1 for j=1728*/
+  if (r % 3 == 1) d++;/*p==2(3), add 1 for j=0*/
+  return d;
+}
+
 /*Returns the neighbours of the supersingular j-invariant j in the l-isogeny graph. pol should be the output of getmodpol, or can be passed as NULL to compute it.*/
 GEN
 ss_nbrs(GEN jval, GEN l, GEN pol)
@@ -75,5 +86,63 @@ ss_nbrs(GEN jval, GEN l, GEN pol)
   }
   return gerepilecopy(av, allrts);
 }
+
+/*Returns the supersingular isogeny graph. The output is [v, G], where v is the vector of possible j-invariants (as finite field elements), and G is the vector of Vecsmall of indices of where the ith element of v has directed arrows towards.*/
+GEN
+ss_graph(GEN p, GEN l)
+{
+  pari_sp av = avma;
+  GEN jval = getss(p);
+  GEN pol = getmodpol(l);
+  long nss = ss_count(p), vind = 1, i, lp2 = itos(l) + 2;
+  GEN v = cgetg(nss + 1, t_VEC);/*Tracks the j-invariants*/
+  GEN G = cgetg(nss + 1, t_VEC);/*Tracks the indices that they go to*/
+  for (i = 1; i <= nss; i++) gel(G, i) = cgetg(lp2, t_VECSMALL);/*l+1-regular*/
+  gel(v, 1) = jval;
+  hashtable locs;/*Tracks the found j-invariants and their location in v.*/
+  hash_init_GEN(&locs, nss, &FF_equal, 1);/*Initialize the hash.*/
+  hash_insert(&locs, (void *)jval, (void *)1);/*First j-value has index 1.*/
+  long maxdepth = 100;/*Maximal depth, to start.*/
+  GEN swaps = const_vecsmall(maxdepth, 0);/*Tracks the sequence of swaps.*/
+  GEN depthseqlocs = const_vecsmall(maxdepth, 0);/*Tracks the indices in v of the depth sequence.*/
+  depthseqlocs[1] = 1;
+  GEN depthseq = cgetg(maxdepth + 1, t_VEC);/*Tracks the sequence of j-values found.*/
+  gel(depthseq, 1) = jval;
+  gel(depthseq, 2) = ss_nbrs(jval, l, pol);/*The starting neighbours.*/
+  long ind = 2;/*Tracks the depth we are working on.*/
+  while (ind > 1) {/*We are finding the neighbours of the next j-value.*/
+	long cind = ++swaps[ind];/*Increment the swapping index. We insert this (if required) and update the previous term in G to go there. If we did insert this anew, we also compute its neighbours and move deeper; otherwise we already did this before.*/
+	if (cind == lp2) {/*Overflowed, go back.*/
+	  swaps[ind] = 0;
+	  ind--;
+	  continue;
+	}
+	GEN curj = gmael(depthseq, ind, cind);/*current j value.*/
+	hashentry *entry = hash_search(&locs, (void *)curj);
+	if (entry) {/*h appeared before, so we have already done it.*/
+	  long where = (long) entry -> val;/*Index it was inserted.*/
+	  gel(G, depthseqlocs[ind - 1])[cind] = where;/*Update the previous location value in G.*/
+	  continue;
+	}
+	vind++;
+	gel(v, vind) = curj;/*Insert it.*/
+	hash_insert(&locs, (void *)curj, (void *)vind);
+	gel(G, depthseqlocs[ind - 1])[cind] = vind;/*Update the previous location value in G.*/
+	depthseqlocs[ind] = vind;
+	ind++;/*We move on.*/
+	if (ind == maxdepth) {/*We are going too deep, must increase our allocations*/
+      long newdepth = maxdepth << 1;/*Double it.*/
+	  swaps = vecsmall_lengthen(swaps, newdepth);
+	  for (i = maxdepth + 1; i <= newdepth; i++) swaps[i] = 0;
+	  depthseqlocs = vecsmall_lengthen(depthseqlocs, newdepth);
+	  depthseq = vec_lengthen(depthseq, newdepth);
+      maxdepth = newdepth;
+    }
+	gel(depthseq, ind) = ss_nbrs(curj, l, pol);
+  }
+  hash_destroy(&locs);/*Done with the hashtable*/
+  return gerepilecopy(av, mkvec2(v, G));
+}
+
 
 
