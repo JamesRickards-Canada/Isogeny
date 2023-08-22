@@ -26,8 +26,8 @@ getss(GEN p)
   forprime_init(&T, stoi(3), NULL);
   GEN q;
   while ( (q = forprime_next(&T)) ) {
-	if (mod4(q) != 3) continue;/*Need q==3 mod 4*/
-	if (kronecker(negi(q), p) == -1) break;
+    if (mod4(q) != 3) continue;/*Need q==3 mod 4*/
+    if (kronecker(negi(q), p) == -1) break;
   }
   GEN hpol = polclass(negi(q), 0, 0);/*Hilbert class polynomial in the variable x.*/
   GEN g = ffgen(mkvec2(p, gen_2), 1);/*Use the variable y for F_p^2.*/
@@ -71,34 +71,34 @@ ss_graph(GEN p, GEN l)
   gel(depthseq, 2) = ss_nbrs(jval, l, pol);/*The starting neighbours.*/
   long ind = 2;/*Tracks the depth we are working on.*/
   while (ind > 1) {/*We are finding the neighbours of the next j-value.*/
-	long cind = ++swaps[ind];/*Increment the swapping index. We insert this (if required) and update the previous term in G to go there. If we did insert this anew, we also compute its neighbours and move deeper; otherwise we already did this before.*/
-	if (cind == lp2) {/*Overflowed, go back.*/
-	  swaps[ind] = 0;
-	  ind--;
-	  continue;
-	}
-	GEN curj = gmael(depthseq, ind, cind);/*current j value.*/
-	hashentry *entry = hash_search(&locs, (void *)curj);
-	if (entry) {/*h appeared before, so we have already done it.*/
-	  long where = (long) entry -> val;/*Index it was inserted.*/
-	  gel(G, depthseqlocs[ind - 1])[cind] = where;/*Update the previous location value in G.*/
-	  continue;
-	}
-	vind++;
-	gel(v, vind) = curj;/*Insert it.*/
-	hash_insert(&locs, (void *)curj, (void *)vind);
-	gel(G, depthseqlocs[ind - 1])[cind] = vind;/*Update the previous location value in G.*/
-	depthseqlocs[ind] = vind;
-	ind++;/*We move on.*/
-	if (ind == maxdepth) {/*We are going too deep, must increase our allocations*/
+    long cind = ++swaps[ind];/*Increment the swapping index. We insert this (if required) and update the previous term in G to go there. If we did insert this anew, we also compute its neighbours and move deeper; otherwise we already did this before.*/
+    if (cind == lp2) {/*Overflowed, go back.*/
+      swaps[ind] = 0;
+      ind--;
+      continue;
+    }
+    GEN curj = gmael(depthseq, ind, cind);/*current j value.*/
+    hashentry *entry = hash_search(&locs, (void *)curj);
+    if (entry) {/*h appeared before, so we have already done it.*/
+      long where = (long) entry -> val;/*Index it was inserted.*/
+      gel(G, depthseqlocs[ind - 1])[cind] = where;/*Update the previous location value in G.*/
+      continue;
+    }
+    vind++;
+    gel(v, vind) = curj;/*Insert it.*/
+    hash_insert(&locs, (void *)curj, (void *)vind);
+    gel(G, depthseqlocs[ind - 1])[cind] = vind;/*Update the previous location value in G.*/
+    depthseqlocs[ind] = vind;
+    ind++;/*We move on.*/
+    if (ind == maxdepth) {/*We are going too deep, must increase our allocations*/
       long newdepth = maxdepth << 1;/*Double it.*/
-	  swaps = vecsmall_lengthen(swaps, newdepth);
-	  for (i = maxdepth + 1; i <= newdepth; i++) swaps[i] = 0;
-	  depthseqlocs = vecsmall_lengthen(depthseqlocs, newdepth);
-	  depthseq = vec_lengthen(depthseq, newdepth);
+      swaps = vecsmall_lengthen(swaps, newdepth);
+      for (i = maxdepth + 1; i <= newdepth; i++) swaps[i] = 0;
+      depthseqlocs = vecsmall_lengthen(depthseqlocs, newdepth);
+      depthseq = vec_lengthen(depthseq, newdepth);
       maxdepth = newdepth;
     }
-	gel(depthseq, ind) = ss_nbrs(curj, l, pol);
+    gel(depthseq, ind) = ss_nbrs(curj, l, pol);
   }
   hash_destroy(&locs);/*Done with the hashtable*/
   for (i = 1; i <= nss; i++) vecsmall_sort(gel(G, i));
@@ -118,8 +118,8 @@ ss_graphadjmat(GEN p, GEN l)
   long lp2 = lg(gel(G, 1));
   GEN M = zeromatcopy(lenG, lenG);
   for (i = 1; i <= lenG; i++) {
-	GEN row = gel(G, i);
-	for (j = 1; j < lp2; j++) gcoeff(M, i, row[j]) = addis(gcoeff(M, i, row[j]), 1);
+    GEN row = gel(G, i);
+    for (j = 1; j < lp2; j++) gcoeff(M, i, row[j]) = addis(gcoeff(M, i, row[j]), 1);
   }
   return gerepilecopy(av, M);
 }
@@ -134,27 +134,27 @@ ss_nbrs(GEN jval, GEN l, GEN pol)
   long sl = itos(l), i;
   GEN f = cgetg(sl + 4, t_POL);/*Stores the polynomial.*/
   for (i = 1; i <= sl + 2; i++) {
-	GEN curcoef = gel(pol, i);/*Polynomial for the current coefficient.*/
-	long j = lg(curcoef) - 1;
-	GEN c = FF_Z_mul(fone, gel(curcoef, j));/*Convert last element to being in the finite field.*/
-	j--;
-	for ( ;j > 0; j--) {
-	  c = FF_mul(c, jval);
-	  c = FF_Z_add(c, gel(curcoef, j));/*Update the evaulation.*/
-	}
-	gel(f, i + 1) = c;
+    GEN curcoef = gel(pol, i);/*Polynomial for the current coefficient.*/
+    long j = lg(curcoef) - 1;
+    GEN c = FF_Z_mul(fone, gel(curcoef, j));/*Convert last element to being in the finite field.*/
+    j--;
+    for ( ;j > 0; j--) {
+      c = FF_mul(c, jval);
+      c = FF_Z_add(c, gel(curcoef, j));/*Update the evaulation.*/
+    }
+    gel(f, i + 1) = c;
   }
   setvarn(f, 0);/*Make sure it is in the variable x.*/
   GEN fact = FFX_factor(f, jval);/*Factor it since we need the multiplicities.*/
   GEN allrts = cgetg(sl + 2, t_VEC);
   long nbfact = nbrows(fact), ind = 1;
   for (i = 1; i <= nbfact; i++) {
-	GEN rt = FF_neg(polcoef(gcoeff(fact, i, 1), 0, 0));/*The root, we are assuming the polynomial factors (which it does).*/
-	long j, po = itos(gcoeff(fact, i, 2));
-	for (j = 1; j <= po; j++) {
-	  gel(allrts, ind) = rt;
-	  ind++;
-	}
+    GEN rt = FF_neg(polcoef(gcoeff(fact, i, 1), 0, 0));/*The root, we are assuming the polynomial factors (which it does).*/
+    long j, po = itos(gcoeff(fact, i, 2));
+    for (j = 1; j <= po; j++) {
+      gel(allrts, ind) = rt;
+      ind++;
+    }
   }
   return gerepilecopy(av, allrts);
 }
@@ -166,9 +166,10 @@ ss_nbrs(GEN jval, GEN l, GEN pol)
 static GEN
 getmodpol(GEN l)
 {
-  pari_sp av = avma;
-  if (!gequal(l, gen_2)) pari_err(e_IMPL, "Not yet implemented.");
-  return gerepilecopy(av, mkvec4(mkvec4s(-157464000000000, 8748000000, -162000, 1), mkvec3s(8748000000, 40773375, 1488), mkvec3s(-162000, 1488, -1), mkvec(gen_1)));
+  char *fname = pari_sprintf("./modpolys/%Pd.dat", l);
+  GEN rdat = gp_readvec_file(fname);/*Read the raw data.*/
+  pari_free(fname);
+  return rdat;
 }
 
 /*Assuming that there is a presaved file for the modular polynomial Phi_n(x, y), this returns said polynomial.*/
@@ -181,11 +182,11 @@ modpol(GEN n)
   long i, j, lrdat = lg(rdat);
   GEN f = gen_0;
   for (i = 1; i < lrdat; i++) {/*y^(i-1) term. This is not the best way of doing it but doesn't matter.*/
-	GEN v = gel(rdat, i);
-	long lv = lg(v);
-	GEN t = gen_0;
-	for (j = 1; j < lv; j++) t = gadd(t, gmul(gel(v, j), pol_xn(j - 1, 0)));
-	f = gadd(f, gmul(t, pol_xn(i - 1, 1)));
+    GEN v = gel(rdat, i);
+    long lv = lg(v);
+    GEN t = gen_0;
+    for (j = 1; j < lv; j++) t = gadd(t, gmul(gel(v, j), pol_xn(j - 1, 0)));
+    f = gadd(f, gmul(t, pol_xn(i - 1, 1)));
   }
   return gerepilecopy(av, f);
 }
@@ -201,19 +202,19 @@ modpol_processraw(GEN n)
   long i, lrdat = lg(rdat);
   GEN pol = gen_0;/*Stores the modular polynomial.*/
   for (i = 1; i < lrdat; i++) {
-	GEN pair = gmael(rdat, i, 1);
-	long d1 = itos(gel(pair, 1)), d2 = itos(gel(pair, 2));
-	GEN toadd = gmul(pol_xn(d1, 0), pol_xn(d2, 1));
-	if (d1 != d2) toadd = gadd(toadd, gmul(pol_xn(d1, 1), pol_xn(d2, 0)));/*Symmetrize it*/
-	pol = gadd(pol, gmul(toadd, gmael(rdat, i, 2)));
+    GEN pair = gmael(rdat, i, 1);
+    long d1 = itos(gel(pair, 1)), d2 = itos(gel(pair, 2));
+    GEN toadd = gmul(pol_xn(d1, 0), pol_xn(d2, 1));
+    if (d1 != d2) toadd = gadd(toadd, gmul(pol_xn(d1, 1), pol_xn(d2, 0)));/*Symmetrize it*/
+    pol = gadd(pol, gmul(toadd, gmael(rdat, i, 2)));
   }
   long deg = poldegree(pol, 0);
   for (i = 0; i <= deg; i++) {
-	GEN term = polcoef(pol, i, 0);/*Term x^i.*/
-	long termdeg = poldegree(term, 1), j;
-	GEN v = cgetg(termdeg + 2, t_VEC);
-	for(j = 0; j <= termdeg; j++) gel(v, j + 1) = polcoef(term, j, 1);/*Make the vector*/
-	pari_fprintf(f, "%Ps\n", v);
+    GEN term = polcoef(pol, i, 0);/*Term x^i.*/
+    long termdeg = poldegree(term, 1), j;
+    GEN v = cgetg(termdeg + 2, t_VEC);
+    for(j = 0; j <= termdeg; j++) gel(v, j + 1) = polcoef(term, j, 1);/*Make the vector*/
+    pari_fprintf(f, "%Ps\n", v);
   }
   fclose(f);
   set_avma(av);
