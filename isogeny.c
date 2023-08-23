@@ -153,9 +153,9 @@ ssl_graph_scipy(GEN p, GEN l)
   for (i = 1; i < ndata; i++) pari_fprintf(f, "%ld ", data[i]);
   pari_fprintf(f, "%ld\n", data[ndata]);
   for (i = 1; i < ndata; i++) pari_fprintf(f, "%ld ", rows[i] - 1);/*Shift by 1 for python convention.*/
-  pari_fprintf(f, "%ld\n", rows[ndata]);
+  pari_fprintf(f, "%ld\n", rows[ndata] - 1);/*Shift by 1 for python convention.*/
   for (i = 1; i < ndata; i++) pari_fprintf(f, "%ld ", cols[i] - 1);/*Shift by 1 for python convention.*/
-  pari_fprintf(f, "%ld", cols[ndata]);
+  pari_fprintf(f, "%ld", cols[ndata] - 1);/*Shift by 1 for python convention.*/
   fclose(f);
   set_avma(av);
 }
