@@ -62,10 +62,10 @@ ssl_graph_i(GEN p, GEN l)
 {
   GEN jval = getssl(p);
   GEN pol = getmodpol(l);
-  long nssl = ssl_count(p), vind = 1, i, lp2 = itos(l) + 2;
+  long nssl = ssl_count(p), vind = 1, i, lgnbrs = ssl_regularity(l) + 1;
   GEN v = cgetg(nssl + 1, t_VEC);/*Tracks the j-invariants*/
   GEN G = cgetg(nssl + 1, t_VEC);/*Tracks the indices that they go to*/
-  for (i = 1; i <= nssl; i++) gel(G, i) = cgetg(lp2, t_VECSMALL);/*l+1-regular*/
+  for (i = 1; i <= nssl; i++) gel(G, i) = cgetg(lgnbrs, t_VECSMALL);/*(lgnbrs-1)-regular*/
   gel(v, 1) = jval;
   hashtable locs;/*Tracks the found j-invariants and their location in v.*/
   hash_init_GEN(&locs, nssl, &FF_equal, 1);/*Initialize the hash.*/
@@ -80,7 +80,7 @@ ssl_graph_i(GEN p, GEN l)
   long ind = 2;/*Tracks the depth we are working on.*/
   while (ind > 1) {/*We are finding the neighbours of the next j-value.*/
     long cind = ++swaps[ind];/*Increment the swapping index. We insert this (if required) and update the previous term in G to go there. If we did insert this anew, we also compute its neighbours and move deeper; otherwise we already did this before.*/
-    if (cind == lp2) {/*Overflowed, go back.*/
+    if (cind == lgnbrs) {/*Overflowed, go back.*/
       swaps[ind] = 0;
       ind--;
       continue;
@@ -122,15 +122,15 @@ ssl_graph_scipy(GEN p, GEN l)
   if (l) G = gel(ssl_graph_i(p, l), 2);
   else G = gel(p, 2);
   long nrows = lg(G) - 1;
-  long lp1 = lg(gel(G, 1)) - 1;
-  long maxnonzero = nrows * lp1 + 1, i, j;
+  long reg = lg(gel(G, 1)) - 1;
+  long maxnonzero = nrows * reg + 1, i, j;
   GEN rows = vecsmalltrunc_init(maxnonzero);/*Converting to csr format.*/
   GEN cols = vecsmalltrunc_init(maxnonzero);
   GEN data = vecsmalltrunc_init(maxnonzero);
   for (i = 1; i <= nrows; i++) {
 	GEN r = gel(G, i);
 	long ct = 1;
-	for (j = 2; j <= lp1; j++) {
+	for (j = 2; j <= reg; j++) {
 	  if (r[j] != r[j - 1]) {
 		vecsmalltrunc_append(rows, i);
 		vecsmalltrunc_append(cols, r[j - 1]);
@@ -140,7 +140,7 @@ ssl_graph_scipy(GEN p, GEN l)
 	  else ct++;
 	}
 	vecsmalltrunc_append(rows, i);
-	vecsmalltrunc_append(cols, r[lp1]);
+	vecsmalltrunc_append(cols, r[reg]);
 	vecsmalltrunc_append(data, ct);
   }
   if (!pari_is_dir("scipy_adj")) {/*Make the directory if it doesn't exist.*/
@@ -160,7 +160,7 @@ ssl_graph_scipy(GEN p, GEN l)
   set_avma(av);
 }
 
-/*Returns the adjacency matrix for the supersingular isogeny graph. Can pass either p and l or the output of ssl_graph.*/
+/*Returns the adjacency matrix for the supersingular isogeny graph. Can pass p as the output of ssl_graph and l=NULL if desired.*/
 GEN
 ssl_graphadjmat(GEN p, GEN l)
 {
