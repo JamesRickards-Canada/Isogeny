@@ -186,9 +186,9 @@ ssl_nbrs(GEN jval, GEN l, GEN pol)
   pari_sp av = avma;
   GEN fone = FF_1(jval);/*1 as a t_FFELT*/
   if (!pol) pol = getmodpol(l);
-  long sl = itos(l), i;
-  GEN f = cgetg(sl + 4, t_POL);/*Stores the polynomial.*/
-  for (i = 1; i <= sl + 2; i++) {
+  long lgpol = lg(pol), i;
+  GEN f = cgetg(lgpol + 1, t_POL);/*Stores the polynomial.*/
+  for (i = 1; i < lgpol; i++) {
     GEN curcoef = gel(pol, i);/*Polynomial for the current coefficient.*/
     long j = lg(curcoef) - 1;
     GEN c = FF_Z_mul(fone, gel(curcoef, j));/*Convert last element to being in the finite field.*/
@@ -201,7 +201,7 @@ ssl_nbrs(GEN jval, GEN l, GEN pol)
   }
   setvarn(f, 0);/*Make sure it is in the variable x.*/
   GEN fact = FFX_factor(f, jval);/*Factor it since we need the multiplicities.*/
-  GEN allrts = cgetg(sl + 2, t_VEC);
+  GEN allrts = cgetg(lgpol - 1, t_VEC);
   long nbfact = nbrows(fact), ind = 1;
   for (i = 1; i <= nbfact; i++) {
     GEN rt = FF_neg(polcoef(gcoeff(fact, i, 1), 0, 0));/*The root, we are assuming the polynomial factors (which it does).*/
@@ -212,6 +212,17 @@ ssl_nbrs(GEN jval, GEN l, GEN pol)
     }
   }
   return gerepilecopy(av, allrts);
+}
+
+/*Returns the regularity of the l-isogeny graph, i.e. the sum of the divisors of l.*/
+long
+ssl_regularity(GEN l)
+{
+  pari_sp av = avma;
+  GEN d = divisorsu(itos(l));
+  long i, s = 0, ld = lg(d);
+  for (i = 1; i < ld; i++) s += d[i];
+  return gc_long(av, s);
 }
 
 

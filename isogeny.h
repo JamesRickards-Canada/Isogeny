@@ -7,6 +7,7 @@ GEN ssl_graph(GEN p, GEN l);
 void ssl_graph_scipy(GEN p, GEN l);
 GEN ssl_graphadjmat(GEN p, GEN l);
 GEN ssl_nbrs(GEN jval, GEN l, GEN pol);
+long ssl_regularity(GEN l);
 
 /*SECTION 2: MODULAR POLYNOMIALS*/
 GEN modpol(GEN n);

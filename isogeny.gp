@@ -14,6 +14,8 @@ isogeny_library=strprintf("./libisogeny-%d-%d.so", parigp_version[1], parigp_ver
 	addhelp(ssl_graphadjmat,"ssl_graphadjmat(p, {l}): returns the adjacency matrix of the supersingular isogeny graph G(p, l); can also pass in p=ssl_graph(p, l) only.");
 	install(ssl_nbrs,"GGDG");
 	addhelp(ssl_nbrs,"ssl_nbrs(jval, l, {pol}): returns the j-values of the neighbours of jval in the l-isogeny graph.");
+	install(ssl_regularity,"lG");
+	addhelp(ssl_regularity,"ssl_regularity(l): returns the regularity of a l-isogeny graph, i.e. the sum of the divisors of l.");
 
 /*SECTION 2: MODULAR POLYNOMIALS*/
 	install(modpol,"G");
