@@ -183,15 +183,16 @@ ssl_graph_L(GEN p, GEN L)
   return mkvec2(jvals, allnbrs);
 }
 
-/*Writes the adjacency matrix to a file readable as a csr_array in scipy.sparse. Can input p=ssl_graph(p, l) and l=jvals=NULL if desired. Can also pass the list of jvals, in case you want to keep the same ordering as another graph. The file is stored in scipy_adj/p_l.dat*/
+/*Writes the adjacency matrix to a file readable as a csr_array in scipy.sparse. Can input p=ssl_graph(p, l) if desired. Can also pass the list of jvals, in case you want to keep the same ordering as another graph. l can be a vector. The file is stored in scipy_adj/p_l.dat. If l is a vector, there are dashes between the l values.*/
 void
 ssl_graph_scipy(GEN p, GEN l, GEN jvals)
 {
   pari_sp av = avma;
   GEN G;
-  if (jvals) G = gel(ssl_graph_givenjvals(p, l, jvals), 2);
-  else if (l) G = gel(ssl_graph_i(p, l), 2);
-  else G = gel(p, 2);
+  if (typ(p) == t_VEC) G = gel(p, 2);/*Graph supplied*/
+  else if (typ(l) == t_VEC) G = gel(ssl_graph_L(p, l), 2);/*Vector of L's*/
+  else if (jvals) G = gel(ssl_graph_givenjvals(p, l, jvals), 2);/*Supplied j values*/
+  else G = gel(ssl_graph_i(p, l), 2);/*Regular input*/
   long nrows = lg(G) - 1;
   long reg = lg(gel(G, 1)) - 1;
   long maxnonzero = nrows * reg + 1, i, j;
@@ -218,7 +219,14 @@ ssl_graph_scipy(GEN p, GEN l, GEN jvals)
     int s = system("mkdir -p scipy_adj");
     if (s == -1) pari_err(e_MISC, "ERROR CREATING DIRECTORY scipy_adj");
   }
-  char *fname = stack_sprintf("./scipy_adj/%Pd_%Pd.dat", p, l);
+  char *fname;
+  if (typ(l) == t_VEC) {
+	fname = stack_sprintf("./scipy_adj/%Pd_%Pd", p, gel(l, 1));
+	long lL = lg(l);
+	for (i = 2; i < lL; i++) fname = stack_sprintf("%s-%Pd", fname, gel(l, i));
+	fname = stack_sprintf("%s.dat", fname);
+  }
+  else fname = stack_sprintf("./scipy_adj/%Pd_%Pd.dat", p, l);
   FILE *f = fopen(fname, "w");
   long ndata = lg(rows) - 1;
   for (i = 1; i < ndata; i++) pari_fprintf(f, "%ld ", data[i]);
