@@ -214,14 +214,18 @@ ssl_nbrs(GEN jval, GEN l, GEN pol)
   return gerepilecopy(av, allrts);
 }
 
-/*Returns the regularity of the l-isogeny graph, i.e. the sum of the divisors of l.*/
+/*Returns the regularity of the l-isogeny graph, i.e. product of (p+1)*p^(e-1)*/
 long
 ssl_regularity(GEN l)
 {
   pari_sp av = avma;
-  GEN d = divisorsu(itos(l));
-  long i, s = 0, ld = lg(d);
-  for (i = 1; i < ld; i++) s += d[i];
+  GEN fact = factoru(itou(l));
+  long i, s = 1, lfact = lg(gel(fact, 1));
+  for (i = 1; i < lfact; i++) {
+	long p = gel(fact, 1)[i];
+	s *= (p + 1);
+	s *= upowuu(p, gel(fact, 2)[i] - 1);
+  }
   return gc_long(av, s);
 }
 
