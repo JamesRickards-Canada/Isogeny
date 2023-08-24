@@ -148,13 +148,14 @@ ssl_graph_givenjvals(GEN p, GEN l, GEN jvals)
   return mkvec2(jvals, G);
 }
 
-/*Writes the adjacency matrix to a file readable as a csr_array in scipy.sparse. Can input p=ssl_graph(p, l) and l=NULL if desired. The file is stored in scipy_adj/p_l.dat*/
+/*Writes the adjacency matrix to a file readable as a csr_array in scipy.sparse. Can input p=ssl_graph(p, l) and l=jvals=NULL if desired. Can also pass the list of jvals, in case you want to keep the same ordering as another graph. The file is stored in scipy_adj/p_l.dat*/
 void
-ssl_graph_scipy(GEN p, GEN l)
+ssl_graph_scipy(GEN p, GEN l, GEN jvals)
 {
   pari_sp av = avma;
   GEN G;
-  if (l) G = gel(ssl_graph_i(p, l), 2);
+  if (jvals) G = gel(ssl_graph_givenjvals(p, l, jvals), 2);
+  else if (l) G = gel(ssl_graph_i(p, l), 2);
   else G = gel(p, 2);
   long nrows = lg(G) - 1;
   long reg = lg(gel(G, 1)) - 1;
