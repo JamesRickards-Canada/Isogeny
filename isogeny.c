@@ -8,6 +8,7 @@
 
 /*SECTION 1: SUPERSINGULAR ELLIPTIC CURVES*/
 static GEN ssl_graph_i(GEN p, GEN l);
+static GEN ssl_graph_givenjvals(GEN p, GEN l, GEN jvals);
 
 /*SECTION 2: MODULAR POLYNOMIALS*/
 static GEN getmodpol(GEN l);
@@ -50,9 +51,10 @@ ssl_count(GEN p)
 
 /*Returns the supersingular isogeny graph. The output is [v, G], where v is the vector of possible j-invariants (as finite field elements), and G is the vector of Vecsmall of indices of where the ith element of v has directed arrows towards.*/
 GEN
-ssl_graph(GEN p, GEN l)
+ssl_graph(GEN p, GEN l, GEN jvals)
 {
   pari_sp av = avma;
+  if (jvals) return gerepilecopy(av, ssl_graph_givenjvals(p, l, jvals));
   return gerepilecopy(av, ssl_graph_i(p, l));
 }
 
@@ -113,6 +115,33 @@ ssl_graph_i(GEN p, GEN l)
   return mkvec2(v, G);
 }
 
+/*DO pol MOD P IMMEDIATELY*/
+
+/*Given all the supersingular j-values, this gives the supersignular isogeny graph. No garbage collection, not gerepile safe*/
+static GEN
+ssl_graph_givenjvals(GEN p, GEN l, GEN jvals)
+{
+  long lgnbrs = ssl_regularity(l) + 1, lj, i, j;
+  GEN pol = getmodpol(l);
+  GEN G = cgetg_copy(jvals, &lj);
+  hashtable locs;/*Tracks the found j-invariants and their location in v.*/
+  hash_init_GEN(&locs, lj, &FF_equal, 1);/*Initialize the hash.*/
+  for (i = 1; i < lj; i++) {
+	hash_insert(&locs, (void *)gel(jvals, i), (void *)i);/*Insert the indices*/
+	gel(G, i) = cgetg(lgnbrs, t_VECSMALL);/*Make the entries.*/
+  }
+  for (i = 1; i < lj; i++) {
+	GEN nbrs = ssl_nbrs(gel(jvals, i), l, pol);
+	for (j = 1; j < lgnbrs; j++) {
+	  hashentry *entry = hash_search(&locs, (void *)gel(nbrs, j));
+	  gel(G, i)[j] = (long) entry -> val;
+	}
+  }
+  hash_destroy(&locs);/*Done with the hashtable*/
+  for (i = 1; i < lj; i++) vecsmall_sort(gel(G, i));
+  return mkvec2(jvals, G);
+}
+
 /*Writes the adjacency matrix to a file readable as a csr_array in scipy.sparse. Can input p=ssl_graph(p, l) and l=NULL if desired. The file is stored in scipy_adj/p_l.dat*/
 void
 ssl_graph_scipy(GEN p, GEN l)
@@ -167,7 +196,7 @@ ssl_graphadjmat(GEN p, GEN l)
   pari_sp av = avma;
   GEN gdat;
   if (!l) gdat = p;
-  else gdat = ssl_graph(p, l);
+  else gdat = ssl_graph(p, l, NULL);
   GEN G = gel(gdat, 2);
   long lenG = lg(G) - 1, i, j;
   long lp2 = lg(gel(G, 1));

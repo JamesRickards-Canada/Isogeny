@@ -3,7 +3,7 @@
 /*SECTION 1: SUPERSINGULAR ELLIPTIC CURVES*/
 GEN getssl(GEN p);
 long ssl_count(GEN p);
-GEN ssl_graph(GEN p, GEN l);
+GEN ssl_graph(GEN p, GEN l, GEN jvals);
 void ssl_graph_scipy(GEN p, GEN l);
 GEN ssl_graphadjmat(GEN p, GEN l);
 GEN ssl_nbrs(GEN jval, GEN l, GEN pol);
