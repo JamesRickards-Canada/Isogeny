@@ -196,14 +196,15 @@ ssl_graph_scipy(GEN p, GEN l, GEN jvals)
   set_avma(av);
 }
 
-/*Returns the adjacency matrix for the supersingular isogeny graph. Can pass p as the output of ssl_graph and l=NULL if desired.*/
+/*Returns the adjacency matrix for the supersingular isogeny graph. Can pass p as the output of ssl_graph and l=jvals=NULL if desired. Can also pass in the vector of j-values.*/
 GEN
-ssl_graphadjmat(GEN p, GEN l)
+ssl_graphadjmat(GEN p, GEN l, GEN jvals)
 {
   pari_sp av = avma;
   GEN gdat;
-  if (!l) gdat = p;
-  else gdat = ssl_graph(p, l, NULL);
+  if (jvals) gdat = ssl_graph_givenjvals(p, l, jvals);
+  else if (l) gdat = ssl_graph_i(p, l);
+  else gdat = p;
   GEN G = gel(gdat, 2);
   long lenG = lg(G) - 1, i, j;
   long lp2 = lg(gel(G, 1));

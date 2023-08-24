@@ -10,8 +10,8 @@ isogeny_library=strprintf("./libisogeny-%d-%d.so", parigp_version[1], parigp_ver
 	addhelp(ssl_graph,"ssl_graph(p, l, {jvals}): returns the supersingular isogeny graph G(p, l). The output is [v, G], where v is the vector of possible j-invariants (as finite field elements), and G is the vector of Vecsmall of indices of where the ith element of v has directed arrows towards. If all the supersingular j-invariants are already known, can pass this in as a vector, and we will retain the same ordering.");
 	install(ssl_graph_scipy,"vGDGDG");
 	addhelp(ssl_graph_scipy,"ssl_graph_scipy(p, {l}, {jvals}): writes the adjacency matrix of G(p, l) to scipy_adj/p_l.dat, in a format readable by csr_array in scipy.sparse. Can also pass in p=ssl_graph(p, l) only; alternatively, can supply the list of j-values (useful when comparing with different l's). The file format is three lines of space separated integers, with the first being the data, the second being the rows, and the third being the columns of the corresponding sparse matrix.");
-	install(ssl_graphadjmat,"GDG");
-	addhelp(ssl_graphadjmat,"ssl_graphadjmat(p, {l}): returns the adjacency matrix of the supersingular isogeny graph G(p, l); can also pass in p=ssl_graph(p, l) only.");
+	install(ssl_graphadjmat,"GDGDG");
+	addhelp(ssl_graphadjmat,"ssl_graphadjmat(p, {l}, {jvals}): returns the adjacency matrix of the supersingular isogeny graph G(p, l); can also pass in p=ssl_graph(p, l) only, and can also pass in the vector of all supersingular j-values.");
 	install(ssl_nbrs,"GGDG");
 	addhelp(ssl_nbrs,"ssl_nbrs(jval, l, {pol}): returns the j-values of the neighbours of jval in the l-isogeny graph.");
 	install(ssl_regularity,"lG");
