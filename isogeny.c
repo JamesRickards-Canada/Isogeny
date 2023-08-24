@@ -55,8 +55,8 @@ GEN
 ssl_graph(GEN p, GEN l, GEN jvals)
 {
   pari_sp av = avma;
-  if (jvals) return gerepilecopy(av, ssl_graph_givenjvals(p, l, jvals));/*Given jvals*/
   if (typ(l) == t_VEC) return gerepilecopy(av, ssl_graph_L(p, l));/*Vector of L's*/
+  if (jvals) return gerepilecopy(av, ssl_graph_givenjvals(p, l, jvals));/*Given jvals*/
   return gerepilecopy(av, ssl_graph_i(p, l));/*Generic, single l and no precomputed jvals.*/
 }
 
@@ -244,17 +244,17 @@ GEN
 ssl_graphadjmat(GEN p, GEN l, GEN jvals)
 {
   pari_sp av = avma;
-  GEN gdat;
-  if (jvals) gdat = ssl_graph_givenjvals(p, l, jvals);
-  else if (l) gdat = ssl_graph_i(p, l);
-  else gdat = p;
-  GEN G = gel(gdat, 2);
+  GEN G;
+  if (!l) G = gel(p, 2);/*p=ssl_graph(p, l)*/
+  else if (typ(l) == t_VEC) G = gel(ssl_graph_L(p, l), 2);/*l is a vector*/
+  else if (jvals) G = gel(ssl_graph_givenjvals(p, l, jvals), 2);/*jvals supplied*/
+  else G = gel(ssl_graph_i(p, l), 2);/*Generic input.*/
   long lenG = lg(G) - 1, i, j;
-  long lp2 = lg(gel(G, 1));
+  long lnbrs = lg(gel(G, 1));
   GEN M = zeromatcopy(lenG, lenG);
   for (i = 1; i <= lenG; i++) {
     GEN row = gel(G, i);
-    for (j = 1; j < lp2; j++) gcoeff(M, i, row[j]) = addis(gcoeff(M, i, row[j]), 1);
+    for (j = 1; j < lnbrs; j++) gcoeff(M, i, row[j]) = addis(gcoeff(M, i, row[j]), 1);
   }
   return gerepilecopy(av, M);
 }
