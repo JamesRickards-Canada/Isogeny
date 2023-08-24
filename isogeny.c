@@ -9,6 +9,7 @@
 /*SECTION 1: SUPERSINGULAR ELLIPTIC CURVES*/
 static GEN ssl_graph_i(GEN p, GEN l);
 static GEN ssl_graph_givenjvals(GEN p, GEN l, GEN jvals);
+static GEN ssl_graph_L(GEN p, GEN L);
 
 /*SECTION 2: MODULAR POLYNOMIALS*/
 static GEN getmodpol(GEN l);
@@ -54,8 +55,9 @@ GEN
 ssl_graph(GEN p, GEN l, GEN jvals)
 {
   pari_sp av = avma;
-  if (jvals) return gerepilecopy(av, ssl_graph_givenjvals(p, l, jvals));
-  return gerepilecopy(av, ssl_graph_i(p, l));
+  if (jvals) return gerepilecopy(av, ssl_graph_givenjvals(p, l, jvals));/*Given jvals*/
+  if (typ(l) == t_VEC) return gerepilecopy(av, ssl_graph_L(p, l));/*Vector of L's*/
+  return gerepilecopy(av, ssl_graph_i(p, l));/*Generic, single l and no precomputed jvals.*/
 }
 
 /*ssl_graph but no garbage collection.*/
@@ -146,6 +148,39 @@ ssl_graph_givenjvals(GEN p, GEN l, GEN jvals)
   hash_destroy(&locs);/*Done with the hashtable*/
   for (i = 1; i < lj; i++) vecsmall_sort(gel(G, i));
   return mkvec2(jvals, G);
+}
+
+/*Does ssl_graph for a vector L.*/
+static GEN
+ssl_graph_L(GEN p, GEN L)
+{
+  long lL, i, lgnbrs;
+  GEN nbrvec = cgetg_copy(L, &lL);/*Stores the neighbours for each l in L.*/
+  if (lL == 1) pari_err_TYPE("L must be non-empty", L);
+  GEN G0 = ssl_graph_i(p, gel(L, 1));
+  GEN jvals = gel(G0, 1);
+  gel(nbrvec, 1) = gel(G0, 2);
+  lgnbrs = lg(gmael(G0, 2, 1)) - 1;/*Tracks the total number of neighbours*/
+  for (i = 2; i < lL; i++) {
+	gel(nbrvec, i) = gel(ssl_graph_givenjvals(p, gel(L, i), jvals), 2);
+	lgnbrs += (lg(gmael(nbrvec, i, 1)) - 1);
+  }
+  lgnbrs++;
+  long ljvals;
+  GEN allnbrs = cgetg_copy(jvals, &ljvals);
+  for (i = 1; i < ljvals; i++) {/*concatenate them all.*/
+    long j, k, ind = 0;
+    gel(allnbrs, i) = cgetg(lgnbrs, t_VECSMALL);
+	for (j = 1; j < lL; j++) {
+	  long lnb = lg(gmael(nbrvec, j, i));
+	  for (k = 1; k < lnb; k++) {
+		ind++;
+		gel(allnbrs, i)[ind] = gmael(nbrvec, j, i)[k];
+	  }
+	}
+	vecsmall_sort(gel(allnbrs, i));
+  }
+  return mkvec2(jvals, allnbrs);
 }
 
 /*Writes the adjacency matrix to a file readable as a csr_array in scipy.sparse. Can input p=ssl_graph(p, l) and l=jvals=NULL if desired. Can also pass the list of jvals, in case you want to keep the same ordering as another graph. The file is stored in scipy_adj/p_l.dat*/
