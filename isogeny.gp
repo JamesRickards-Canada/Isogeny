@@ -1,3 +1,5 @@
+print("\n\nType '?supersingular' for help.\n\n");
+addhelp(supersingular, "This package can be used to compute directed supersingular isogeny graphs.\n Installed methods:\ngetssl, ssl_count, ssl_graph, ssl_graph_scipy, ssl_graphadjmat, ssl_nbrs, ssl_regularity\nmodpol, modpol_processraw");
 parigp_version=version();
 isogeny_library=strprintf("./libisogeny-%d-%d.so", parigp_version[1], parigp_version[2]);
 
