@@ -64,7 +64,11 @@ ssl_graph_i(GEN p, GEN l)
 {
   GEN jval = getssl(p);
   GEN pol = getmodpol(l);
-  long nssl = ssl_count(p), vind = 1, i, lgnbrs = ssl_regularity(l) + 1;
+  long nssl = ssl_count(p), vind = 1, lgnbrs = ssl_regularity(l) + 1, i;
+  for (i = 1; i <= lgnbrs; i++) {/*Reduce pol modulo p*/
+    long lgterm = lg(gel(pol, i)), j;
+	for (j = 1; j < lgterm; j++) gmael(pol, i, j) = modii(gmael(pol, i, j), p);
+  }
   GEN v = cgetg(nssl + 1, t_VEC);/*Tracks the j-invariants*/
   GEN G = cgetg(nssl + 1, t_VEC);/*Tracks the indices that they go to*/
   for (i = 1; i <= nssl; i++) gel(G, i) = cgetg(lgnbrs, t_VECSMALL);/*(lgnbrs-1)-regular*/
@@ -115,14 +119,16 @@ ssl_graph_i(GEN p, GEN l)
   return mkvec2(v, G);
 }
 
-/*DO pol MOD P IMMEDIATELY*/
-
 /*Given all the supersingular j-values, this gives the supersignular isogeny graph. No garbage collection, not gerepile safe*/
 static GEN
 ssl_graph_givenjvals(GEN p, GEN l, GEN jvals)
 {
   long lgnbrs = ssl_regularity(l) + 1, lj, i, j;
   GEN pol = getmodpol(l);
+  for (i = 1; i <= lgnbrs; i++) {/*Reduce pol modulo p*/
+    long lgterm = lg(gel(pol, i));
+	for (j = 1; j < lgterm; j++) gmael(pol, i, j) = modii(gmael(pol, i, j), p);
+  }
   GEN G = cgetg_copy(jvals, &lj);
   hashtable locs;/*Tracks the found j-invariants and their location in v.*/
   hash_init_GEN(&locs, lj, &FF_equal, 1);/*Initialize the hash.*/
