@@ -2,7 +2,11 @@
 
 Code to efficiently compute the directed supersingular isogeny graph G(p, L), written in PARI. This allows for L = integer or vector of integers, currently restricted to at most 17. For larger l, it requires downloading and processing the relevant modular polynomials (see "modpol_processraw" for more details).
 
-There is currently code built-in to Sage to do this, however this project is significantly faster than the Sage implementation. For l = 2 it appears to be about 50 times as fast, and larger l's should be even faster than that. 
+There is currently code built-in to Sage to do this, however this project allows for non-prime l and is significantly faster than the Sage implementation:
+* l = 2, about 67 times as fast
+* l = 3, about 107 times as fast
+* l = 5, about 211 times as fast
+* l = 7, about 217 times as fast
 
 ## Main methods
 gp: 
