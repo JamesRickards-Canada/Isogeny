@@ -2,7 +2,7 @@
 
 Code to efficiently compute the directed supersingular isogeny graph G(p, L), written in PARI. This allows for L = integer or vector of integers, currently restricted to at most 17. For larger l, it requires downloading and processing the relevant modular polynomials (see "modpol_processraw" for more details).
 
-There is currently code built-in to Sage to do this, however this project allows for non-prime l and is significantly faster than the Sage implementation:
+There is currently code built-in to Sage to do this, however this project allows for non-prime l as well as L-isogeny graphs, and it is significantly faster than the Sage implementation:
 * l = 2, about 67 times as fast
 * l = 3, about 107 times as fast
 * l = 5, about 211 times as fast
@@ -25,17 +25,29 @@ python:
 
 2. You need to know where the version of PARI/GP you want to use is installed. The default location is inside /usr/local, but this may change based on your Linux distro, or if you want to use it through SageMath. If you think it is installed in the default location, you can simply call "make".
 
-3. Otherwise, call "make setup" to search for the correct files. They are likely somewhere in /usr, but you can change this if not. If the program finds potential matches, it will ask you to confirm which files are correct, and saves them to "pari_loc.txt". Once this step completes, a call to "make" will compile the project! Modifying the program (e.g. via git pull) won't require redoing this setup, unless the version of PARI/GP or Sage you use changes.
+3. Otherwise, call "make setup" to search for the correct files. By default the program searches in "/usr", but there is a chance it is not installed there (this sometimes happens on a server). If this is the case, you can supply an alternate location.
 
-4. Call "gp isogeny" to start gp and load the methods. ?supersingular accesses the help
+4. If the program finds potential matches, it will ask you to confirm which files are correct, and saves them to "pari_loc.txt". Once this step completes, a call to "make" will compile the project! Modifying the program (e.g. via git pull) won't require redoing this setup, unless the version of PARI/GP or Sage you use changes.
 
-5. Call "make clean" to clean up the files created.
+5. Call "gp isogeny" to start gp and load the methods. ?supersingular accesses the help
+
+6. Call "make clean" to clean up the files created.
 
 ## Sage integration
-You need to make sure that when you call "make setup", you find the version of PARI/GP installed with the version of Sage you are using. For example, on CoCalc, it should be in /ext/sage/VERSION/local. Once the project is built:
+You need to make sure that when you call "make setup" you find the version of PARI/GP installed with the version of Sage you are using. For example, on CoCalc, it should be in /ext/sage/VERSION/local. Once the project is built,
 
 1. Open Sage/Jupyter, and call gp.read('isogeny.gp') to load the methods
 
-2. To use the methods, the syntax is "g = gp.ssl_graph(101, [2, 3, 11])" (which computes the graph for p=103 and l=[2, 3, 11]). Note that this returns a PARI/GP object, which you may have to modify a bit to use with other sage methods
+2. To use the methods, the syntax is "g = gp.ssl_graph(101, [2, 3, 11])" (which computes the graph for p=103 and l=[2, 3, 11]). Note that this returns a PARI/GP object, which you may have to modify a bit to use with other sage methods. See below.
 
 3. ?gp.supersingular accesses the help
+
+In order to use the objects with other Sage functions, you need to convert them from PARI/GP objects. For example, to obtain an unlabelled supersingular graph, you can call:
+
+gp.read("isogeny.gp")\
+from sage.libs.pari.convert_sage import gen_to_sage\
+x=gp.ssl_graph(101, 3)\
+graph=gen_to_sage(pari(x)[1])\
+graph=[[x-1 for x in vtxcon] for vtxcon in graph]
+
+Then "graph" is a vector representing that the ith vertex has directed edges to all elements of graph[i]. The reason for the last line is that in PARI/GP vectors start at 1, whereas in Python/Sage they start at 0, so we have to decrease every entry by 1 to make it work.
