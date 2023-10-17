@@ -38,10 +38,9 @@ $(DYN): $(OBJS)
 %.o: %.c
 	$(CC) -c $(CFLAGS) -I. -I$(PARI_INCLUDE) $<
 
-#Clear all .o files and pari_loc.txt
+#Clear all .o files
 clean:
 	$(RM) *.o $(ALL)
-	$(RM) ./$(PARI_ALT_LOC)
 
 #Finds where pari/gp is installed and saves it to pari_loc.txt for the future.
 setup:
