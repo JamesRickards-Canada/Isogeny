@@ -19,10 +19,8 @@ endif
 PARI_CFG = $(PARI_LIB)/pari/pari.cfg
 
 #Naming the library file to include the version of pari/gp.
-ifneq ($(PARI_LIB), )
-	VER = $(shell grep "pari_release=" "$(PARI_CFG)" | cut -d"'" -f2 | tr . - | cut -d"-" -f1,2)
-	DYN = lib$(TARGET)-$(VER).so
-endif
+VER = $(shell grep "pari_release=" "$(PARI_CFG)" -s | cut -d"'" -f2 | tr . - | cut -d"-" -f1,2)
+DYN = lib$(TARGET)-$(VER).so
 
 #Compiling options
 CC = cc
