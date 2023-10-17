@@ -1,7 +1,7 @@
 /*Supersingular elliptic curve graph*/
 
 /*INCLUSIONS*/
-#include <pari/pari.h>
+#include <pari.h>
 #include "isogeny.h"
 
 /*STATIC DECLARATIONS*/
