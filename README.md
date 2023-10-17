@@ -23,25 +23,19 @@ python:
 ## Installation
 1. git clone this repository
 
-2. Enter the folder and call "make". If your version of PARI/GP is not installed in the "default location", or you want to use this from Sage, see bullet point 1 of the "Sage incorporation" below.
+2. You need to know where the version of PARI/GP you want to use is installed. The default location is inside /usr/local, but this may change based on your Linux distro, or if you want to use it through SageMath. If you think it is installed in the default location, you can simply call "make".
 
-3. Call "gp isogeny" to start gp and load the methods. ?supersingular accesses the help
+3. Otherwise, call "make setup" to search for the correct files. They are likely somewhere in /usr, but you can change this if not. If the program finds potential matches, it will ask you to confirm which files are correct, and saves them to "pari_loc.txt". Once this step completes, a call to "make" will compile the project! Modifying the program (e.g. via git pull) won't require redoing this setup, unless the version of PARI/GP or Sage you use changes.
 
-## Sage incorporation
-These are extra steps / changes required to use this inside Sage.
+4. Call "gp isogeny" to start gp and load the methods. ?supersingular accesses the help
 
-1. Find where PARI/GP is installed in Sage (it's important to find this version, as it may differ in version number if you have it installed separately), i.e. the folder X where:  
-   X/lib contains the file libpari.so;  
-   X/lib/pari contains the file pari.cfg;  
-   X/include/pari contains about 18 .h header files for PARI/GP.  
-   On CoCalc, this is /ext/sage/default/local
+5. Call "make clean" to clean up the files created.
 
-2. In the repository, make a file named "pariloc.txt" containing the path to X
+## Sage integration
+You need to make sure that when you call "make setup", you find the version of PARI/GP installed with the version of Sage you are using. For example, on CoCalc, it should be in /ext/sage/VERSION/local. Once the project is built:
 
-3. Call "make" from the terminal to build the project
+1. Open Sage/Jupyter, and call gp.read('isogeny.gp') to load the methods
 
-4. Open Sage/Jupyter, and call gp.read('isogeny.gp') to load the methods
+2. To use the methods, the syntax is "g = gp.ssl_graph(101, [2, 3, 11])" (which computes the graph for p=103 and l=[2, 3, 11]). Note that this returns a PARI/GP object, which you may have to modify a bit to use with other sage methods
 
-5. To use the methods, the syntax is "g = gp.ssl_graph(101, [2, 3, 11])" (which computes the graph for p=103 and l=[2, 3, 11]). Note that this returns a PARI/GP object, which you may have to modify a bit to use with other sage methods
-
-7. ?gp.supersingular accesses the help
+3. ?gp.supersingular accesses the help
