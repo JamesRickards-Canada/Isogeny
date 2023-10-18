@@ -20,6 +20,9 @@ python:
 * secondabseval: returns the second largest eigenvalue in absolute value
 * allevals: returns all eigenvalues
 
+sage:
+* ssl_graph: computes the supersingular isogeny graph using the PARI/GP code, and converts it to a Sage object. The output is a DiGraph with vertices labelled by supersingular j-invariants. This is the replacement for "E.isogeny_ell_graph(l, directed = True, label_by_j = True)": it will give an isomorphic graph, where the F_p^2 vertices may be presented differently (the choice of generator for F_p^2 may be different).
+
 ## Installation
 1. git clone this repository
 
@@ -34,20 +37,17 @@ python:
 6. Call "make clean" to clean up the files created.
 
 ## Sage integration
-You need to make sure that when you call "make setup" you find the version of PARI/GP installed with the version of Sage you are using. For example, on CoCalc, it should be in /ext/sage/VERSION/local. Once the project is built,
+You need to make sure that when you call "make setup" you find the version of PARI/GP installed with the version of Sage you are using. For example, on CoCalc, it should be in /ext/sage/VERSION/local. Once the project is built, you can call:
+
+load("ssl_pari.sage")\
+G = ssl_graph(101, 8)
+
+to create the supersingular 8-isogeny graph for p = 101 as a DiGraph. You can then retrieve its adjacency matrix from this, display it, etc.
+
+If you want to play with the PARI/GP methods in Sage, then:
 
 1. Open Sage/Jupyter, and call gp.read('isogeny.gp') to load the methods
 
-2. To use the methods, the syntax is "g = gp.ssl_graph(101, [2, 3, 11])" (which computes the graph for p=103 and l=[2, 3, 11]). Note that this returns a PARI/GP object, which you may have to modify a bit to use with other sage methods. See below.
+2. To use the methods, the syntax is "g = gp.ssl_graph(101, [2, 3, 11])" (which computes the graph for p=103 and l=[2, 3, 11]). Note that this returns a PARI/GP object, which you may have to modify a bit to use with other sage methods.
 
 3. ?gp.supersingular accesses the help
-
-In order to use the objects with other Sage functions, you need to convert them from PARI/GP objects. For example, to obtain an unlabelled supersingular graph, you can call:
-
-gp.read("isogeny.gp")\
-from sage.libs.pari.convert_sage import gen_to_sage\
-x=gp.ssl_graph(101, 3)\
-graph=gen_to_sage(pari(x)[1])\
-graph=[[x-1 for x in vtxcon] for vtxcon in graph]
-
-Then "graph" is a vector representing that the ith vertex has directed edges to all elements of graph[i]. The reason for the last line is that in PARI/GP vectors start at 1, whereas in Python/Sage they start at 0, so we have to decrease every entry by 1 to make it work.
