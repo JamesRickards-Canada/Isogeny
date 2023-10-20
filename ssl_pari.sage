@@ -1,6 +1,19 @@
 gp.read("isogeny.gp")
 from sage.libs.pari.convert_sage import gen_to_sage
 
+#Makes the (sparse) adjacency matrix for the supersingular graph at (p, l)
+#Faster than calling ssl_graph(p, l).adjacency_matrix(sparse = True), as we don't make a DiGraph element
+def ssl_adjmat(p, l):
+    gpgraph = gp.ssl_graph(p, l)
+    edges = pari(gpgraph[2])
+    nver = len(edges)
+    M = matrix(ZZ, nver, sparse = True)
+    for i in range(nver):
+        vtx = edges[i]
+        for j in range(len(vtx)):
+            M[i, vtx[j] - 1] += 1
+    return M
+
 #Make the supersingular isogeny graph in PARI/GP, and import into Sage.
 #We are careful to try to limit calls to gp. and gen_to_sage, as they are EXTREMELY SLOW.
 #Seriously, they made an initial version over 150 times as slow.
