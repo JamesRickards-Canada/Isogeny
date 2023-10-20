@@ -14,14 +14,15 @@ gp:
 * ssl_graphadjmat: returns the adjacency matrix of said graph
 * ssl_graph_scipy: does not return the graph but saves it to a file. This file can be used to import this data into python, and efficiently compute its eigenvalues.
 
-python:
+Python:
 * sparseadjmtx: load the saved file (from ssl_graph_scipy) as a sparse array in scipy
 * secondeval: returns the second largest eigenvalue
 * secondabseval: returns the second largest eigenvalue in absolute value
 * allevals: returns all eigenvalues
 
-sage:
-* ssl_graph: computes the supersingular isogeny graph using the PARI/GP code, and converts it to a Sage object. The output is a DiGraph with vertices labelled by supersingular j-invariants. This is the replacement for "E.isogeny_ell_graph(l, directed = True, label_by_j = True)": it will give an isomorphic graph, where the F_p^2 vertices may be presented differently (the choice of generator for F_p^2 may be different).
+Sage:
+* ssl_adjmat: computes the supersingular isogeny graph using the PARI/GP code, and makes the adjacency matrix as a sparse matrix in Sage. This is about twice as fast as ssl_graph, as we don't need to make a DiGraph and add the edges.
+* ssl_graph: computes the supersingular isogeny graph using the PARI/GP code, and converts it to a Sage object. The output is a DiGraph with vertices labelled by supersingular j-invariants. This is the replacement for "E.isogeny_ell_graph(l, directed = True, label_by_j = True)": it will give an isomorphic graph, where the F_p^2 vertices may be presented differently (the choice of generator for F_p^2 may be different). Note that the vertices are labelled by the actual j-invariants in GF(p^2), and not the strings that give the j-invariants (which is what isogeny_ell_graph does).
 
 ## Installation
 1. git clone this repository
@@ -40,14 +41,15 @@ sage:
 You need to make sure that when you call "make setup" you find the version of PARI/GP installed with the version of Sage you are using. For example, on CoCalc, it should be in /ext/sage/VERSION/local. Once the project is built, you can call:
 
 load("ssl_pari.sage")\
-G = ssl_graph(101, 8)
+G = ssl_graph(101, 8)\
+M = ssl_adjmat(15013, [2, 3])
 
-to create the supersingular 8-isogeny graph for p = 101 as a DiGraph. You can then retrieve its adjacency matrix from this, display it, etc.
-
-If you want to play with the PARI/GP methods in Sage, then:
+to create the supersingular 8-isogeny graph for p = 101 as a DiGraph, and the adjacency matrix for the [2, 3]-isogeny graph for p=15013. Note that this is a bit slower than the native PARI/GP methods, as there is overhead in converting them to Sage, as well as making the DiGraph object. If you want to play with the native PARI/GP methods in Sage, then:
 
 1. Open Sage/Jupyter, and call gp.read('isogeny.gp') to load the methods
 
 2. To use the methods, the syntax is "g = gp.ssl_graph(101, [2, 3, 11])" (which computes the graph for p=103 and l=[2, 3, 11]). Note that this returns a PARI/GP object, which you may have to modify a bit to use with other sage methods.
 
 3. ?gp.supersingular accesses the help
+
+However, I suggest simply using PARI/GP instead if this is the case. Every call to gp.METHOD has a significant overhead (perhaps as much as 5ms).
