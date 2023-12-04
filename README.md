@@ -35,8 +35,15 @@ Sage:
 
 5. Call "gp isogeny" to start gp and load the methods. ?supersingular accesses the help
 
-6. Call "make clean" to clean up the files created.
+6. Call "make clean" to clean up the object files (.o) created.
 
+## Troubleshooting
+
+* **No library found**: the files were not found in the search location. Try asking to search in "/", which searches everywhere. This will be slow, but is guaranteed to find the correct files, if they exist.
+* **Wrong version**: Maybe you found the libraries, but there were warnings with "make". The likely cause is the version of PARI/GP you found was too old. If there are multiple copies of PARI/GP on your computer, then perhaps you chose the wrong one! Check the shared object file created: it will be called "libisogeny-X-Y.so", where "X.Y" is the version of PARI/GP in the libraries. If this does not match the version you are using, then you found the wrong one!
+* **Miscellaneous**: when you compile with "make", object files (.o) are created. However, if the underlying code did not change, then nothing will happen. If you change the version of PARI/GP you are working with (or perhaps, trying different installations), then you should call "make clean" in between to clear out these object files. Otherwise, recompiling will do nothing!
+* If you are still having issues with installation, please get in touch, and I will try to help sort it out!
+ 
 ## Sage integration
 You need to make sure that when you call "make setup" you find the version of PARI/GP installed with the version of Sage you are using. For example, on CoCalc, it should be in /ext/sage/VERSION/local. Once the project is built, you can call:
 
