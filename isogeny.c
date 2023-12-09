@@ -69,7 +69,7 @@ ssl_graph_i(GEN p, GEN l)
   long nssl = ssl_count(p), vind = 1, lgnbrs = ssl_regularity(l) + 1, i;
   for (i = 1; i <= lgnbrs; i++) {/*Reduce pol modulo p*/
     long lgterm = lg(gel(pol, i)), j;
-	for (j = 1; j < lgterm; j++) gmael(pol, i, j) = modii(gmael(pol, i, j), p);
+    for (j = 1; j < lgterm; j++) gmael(pol, i, j) = modii(gmael(pol, i, j), p);
   }
   GEN v = cgetg(nssl + 1, t_VEC);/*Tracks the j-invariants*/
   GEN G = cgetg(nssl + 1, t_VEC);/*Tracks the indices that they go to*/
@@ -129,7 +129,7 @@ ssl_graph_givenjvals(GEN p, GEN l, GEN jvals)
   GEN pol = getmodpol(l);
   for (i = 1; i <= lgnbrs; i++) {/*Reduce pol modulo p*/
     long lgterm = lg(gel(pol, i));
-	for (j = 1; j < lgterm; j++) gmael(pol, i, j) = modii(gmael(pol, i, j), p);
+    for (j = 1; j < lgterm; j++) gmael(pol, i, j) = modii(gmael(pol, i, j), p);
   }
   GEN G = cgetg_copy(jvals, &lj);
   hashtable locs;/*Tracks the found j-invariants and their location in v.*/
@@ -139,11 +139,11 @@ ssl_graph_givenjvals(GEN p, GEN l, GEN jvals)
 	gel(G, i) = cgetg(lgnbrs, t_VECSMALL);/*Make the entries.*/
   }
   for (i = 1; i < lj; i++) {
-	GEN nbrs = ssl_nbrs(gel(jvals, i), l, pol);
-	for (j = 1; j < lgnbrs; j++) {
-	  hashentry *entry = hash_search(&locs, (void *)gel(nbrs, j));
-	  gel(G, i)[j] = (long) entry -> val;
-	}
+    GEN nbrs = ssl_nbrs(gel(jvals, i), l, pol);
+    for (j = 1; j < lgnbrs; j++) {
+      hashentry *entry = hash_search(&locs, (void *)gel(nbrs, j));
+      gel(G, i)[j] = (long) entry -> val;
+    }
   }
   hash_destroy(&locs);/*Done with the hashtable*/
   for (i = 1; i < lj; i++) vecsmall_sort(gel(G, i));
@@ -162,8 +162,8 @@ ssl_graph_L(GEN p, GEN L)
   gel(nbrvec, 1) = gel(G0, 2);
   lgnbrs = lg(gmael(G0, 2, 1)) - 1;/*Tracks the total number of neighbours*/
   for (i = 2; i < lL; i++) {
-	gel(nbrvec, i) = gel(ssl_graph_givenjvals(p, gel(L, i), jvals), 2);
-	lgnbrs += (lg(gmael(nbrvec, i, 1)) - 1);
+    gel(nbrvec, i) = gel(ssl_graph_givenjvals(p, gel(L, i), jvals), 2);
+    lgnbrs += (lg(gmael(nbrvec, i, 1)) - 1);
   }
   lgnbrs++;
   long ljvals;
@@ -171,14 +171,14 @@ ssl_graph_L(GEN p, GEN L)
   for (i = 1; i < ljvals; i++) {/*concatenate them all.*/
     long j, k, ind = 0;
     gel(allnbrs, i) = cgetg(lgnbrs, t_VECSMALL);
-	for (j = 1; j < lL; j++) {
-	  long lnb = lg(gmael(nbrvec, j, i));
-	  for (k = 1; k < lnb; k++) {
-		ind++;
-		gel(allnbrs, i)[ind] = gmael(nbrvec, j, i)[k];
-	  }
-	}
-	vecsmall_sort(gel(allnbrs, i));
+    for (j = 1; j < lL; j++) {
+      long lnb = lg(gmael(nbrvec, j, i));
+      for (k = 1; k < lnb; k++) {
+      ind++;
+      gel(allnbrs, i)[ind] = gmael(nbrvec, j, i)[k];
+      }
+    }
+    vecsmall_sort(gel(allnbrs, i));
   }
   return mkvec2(jvals, allnbrs);
 }
@@ -204,10 +204,10 @@ ssl_graph_scipy(GEN p, GEN l, GEN jvals)
 	long ct = 1;
 	for (j = 2; j <= reg; j++) {
 	  if (r[j] != r[j - 1]) {
-		vecsmalltrunc_append(rows, i);
-		vecsmalltrunc_append(cols, r[j - 1]);
-		vecsmalltrunc_append(data, ct);
-		ct = 1;
+      vecsmalltrunc_append(rows, i);
+      vecsmalltrunc_append(cols, r[j - 1]);
+      vecsmalltrunc_append(data, ct);
+      ct = 1;
 	  }
 	  else ct++;
 	}
@@ -221,10 +221,10 @@ ssl_graph_scipy(GEN p, GEN l, GEN jvals)
   }
   char *fname;
   if (typ(l) == t_VEC) {
-	fname = stack_sprintf("./scipy_adj/%Pd_%Pd", p, gel(l, 1));
-	long lL = lg(l);
-	for (i = 2; i < lL; i++) fname = stack_sprintf("%s-%Pd", fname, gel(l, i));
-	fname = stack_sprintf("%s.dat", fname);
+    fname = stack_sprintf("./scipy_adj/%Pd_%Pd", p, gel(l, 1));
+    long lL = lg(l);
+    for (i = 2; i < lL; i++) fname = stack_sprintf("%s-%Pd", fname, gel(l, i));
+    fname = stack_sprintf("%s.dat", fname);
   }
   else fname = stack_sprintf("./scipy_adj/%Pd_%Pd.dat", p, l);
   FILE *f = fopen(fname, "w");
@@ -302,9 +302,9 @@ ssl_regularity(GEN l)
   GEN fact = factoru(itou(l));
   long i, s = 1, lfact = lg(gel(fact, 1));
   for (i = 1; i < lfact; i++) {
-	long p = gel(fact, 1)[i];
-	s *= (p + 1);
-	s *= upowuu(p, gel(fact, 2)[i] - 1);
+    long p = gel(fact, 1)[i];
+    s *= (p + 1);
+    s *= upowuu(p, gel(fact, 2)[i] - 1);
   }
   return gc_long(av, s);
 }
@@ -316,9 +316,8 @@ ssl_regularity(GEN l)
 static GEN
 getmodpol(GEN l)
 {
-  char *fname = pari_sprintf("./modpolys/%Pd.dat", l);
+  char *fname = stack_sprintf("./modpolys/%Pd.dat", l);
   GEN rdat = gp_readvec_file(fname);/*Read the raw data.*/
-  pari_free(fname);
   return rdat;
 }
 
