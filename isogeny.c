@@ -121,7 +121,7 @@ ssl_graph_i(GEN p, GEN l)
   return mkvec2(v, G);
 }
 
-/*Given all the supersingular j-values, this gives the supersignular isogeny graph. No garbage collection, not gerepile safe*/
+/*Given all the supersingular j-values, this gives the supersingular isogeny graph. No garbage collection, not gerepile safe*/
 static GEN
 ssl_graph_givenjvals(GEN p, GEN l, GEN jvals)
 {
